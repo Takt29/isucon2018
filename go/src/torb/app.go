@@ -427,13 +427,20 @@ func main() {
 		sheetsList = make([]Sheet, 0)
 
 		tx, err := db.Begin()
-		//tx.Exec("alter table reservations add column changed_at datetime(6)")
+		tx.Exec("alter table reservations add column changed_at datetime(6)")
 
 		if err != nil {
 			tx.Rollback()
 			return nil
 		}
 
+		tx.Exec("alter table reservations add index (changed_at)")
+
+		if err != nil {
+			tx.Rollback()
+			return nil
+		}
+		
 		tx.Exec("update reservations set changed_at = IFNULL(canceled_at, reserved_at)")
 
 		if err != nil {
