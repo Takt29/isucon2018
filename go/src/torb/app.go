@@ -440,14 +440,14 @@ func main() {
 			tx.Rollback()
 			return nil
 		}
-		
+		/*
 		tx.Exec("alter table reservations add index (event_id, reserved_at)")
 
 		if err != nil {
 			tx.Rollback()
 			return nil
 		}
-		
+		*/
 		tx.Exec("update reservations set changed_at = IFNULL(canceled_at, reserved_at)")
 
 		if err != nil {
