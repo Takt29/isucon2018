@@ -221,16 +221,46 @@ func getEvents(all bool) ([]*Event, error) {
 	
 	
 	for i, v := range events {
+		//event, err := getEventMini(v.ID, -1)
 		event, err := getEvent(v.ID, -1)
 		if err != nil {
 			return nil, err
 		}
+		/*
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
+    */
 		events[i] = event
 	}
 	return events, nil
+}
+
+func getEventMini(eventID, loginUserID int64) (*Event, error) {
+	var event Event
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+		return nil, err
+	}
+
+	db.QueryRow("SELECT COUNT(*) FROM sheets").Scan(&event.Total)
+	db.QueryRow("SELECT COUNT(*) FROM reservations WHERE event_id = ? AND canceled_at IS NULL", eventID).Scan(&event.Remains)
+	event.Remains = event.Total - event.Remains
+
+	rows, err := db.Query("SELECT rank, MAX(price) FROM sheets GROUP BY rank")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sheet Sheet
+		if err := rows.Scan(&sheet.Rank, &sheet.Price); err != nil {
+			return nil, err
+		}
+		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
+	}
+
+	return &event, nil
 }
 
 func getEvent(eventID, loginUserID int64) (*Event, error) {
