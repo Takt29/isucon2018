@@ -513,7 +513,7 @@ func main() {
 				return err
 			}
 
-			event, err := getEvent(reservation.EventID, -1)
+			event, err := getEventMini(reservation.EventID, -1)
 			if err != nil {
 				return err
 			}
