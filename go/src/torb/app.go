@@ -427,7 +427,7 @@ func main() {
 		sheetsList = make([]Sheet, 0)
 
 		tx, err := db.Begin()
-		tx.Exec("alter table reservations add column changed_at datetime(6)")
+		//tx.Exec("alter table reservations add column changed_at datetime(6)")
 
 		if err != nil {
 			tx.Rollback()
@@ -553,7 +553,7 @@ func main() {
 			if err := rows.Scan(&eventID); err != nil {
 				return err
 			}
-			event, err := getEvent(eventID, -1)
+			event, err := getEventMini(eventID, -1)
 			if err != nil {
 				return err
 			}
