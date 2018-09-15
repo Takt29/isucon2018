@@ -184,8 +184,13 @@ func getLoginAdministrator(c echo.Context) (*Administrator, error) {
 	err := db.QueryRow("SELECT id, nickname FROM administrators WHERE id = ?", administratorID).Scan(&administrator.ID, &administrator.Nickname)
 	return &administrator, err
 }
-
+var bak_getEventsData []*Event
+var getEventsDataFlag = false
 func getEvents(all bool) ([]*Event, error) {
+	if(getEventsDataFlag){
+		return bak_getEventsData, nil
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return nil, err
@@ -219,6 +224,8 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 		events[i] = event
 	}
+	bak_getEventsData = events;
+	getEventsDataFlag = true;
 	return events, nil
 }
 
@@ -556,6 +563,7 @@ func main() {
 		return c.JSON(200, sanitizeEvent(event))
 	})
 	e.POST("/api/events/:id/actions/reserve", func(c echo.Context) error {
+		getEventsDataFlag = false
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -626,6 +634,7 @@ func main() {
 		})
 	}, loginRequired)
 	e.DELETE("/api/events/:id/sheets/:rank/:num/reservation", func(c echo.Context) error {
+		getEventsDataFlag = false
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
@@ -743,6 +752,7 @@ func main() {
 		return c.JSON(200, events)
 	}, adminLoginRequired)
 	e.POST("/admin/api/events", func(c echo.Context) error {
+		getEventsDataFlag = false
 		var params struct {
 			Title  string `json:"title"`
 			Public bool   `json:"public"`
@@ -790,6 +800,7 @@ func main() {
 		return c.JSON(200, event)
 	}, adminLoginRequired)
 	e.POST("/admin/api/events/:id/actions/edit", func(c echo.Context) error {
+		getEventsDataFlag = false
 		eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 		if err != nil {
 			return resError(c, "not_found", 404)
