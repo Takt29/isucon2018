@@ -69,6 +69,7 @@ type Reservation struct {
 	UserID     int64      `json:"-"`
 	ReservedAt *time.Time `json:"-"`
 	CanceledAt *time.Time `json:"-"`
+	ChangedAt  *time.Time `json:"-"`
 
 	Event          *Event `json:"event,omitempty"`
 	SheetRank      string `json:"sheet_rank,omitempty"`
@@ -314,7 +315,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Total++
 
 		var reservation Reservation
-		err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
+		err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ChangedAt)
 		if err == nil {
 			sheet.Mine = reservation.UserID == loginUserID
 			sheet.Reserved = true
@@ -508,7 +509,7 @@ func main() {
 		for rows.Next() {
 			var reservation Reservation
 			var sheet Sheet
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ChangedAt, &sheet.Rank, &sheet.Num); err != nil {
 				return err
 			}
 
@@ -748,7 +749,7 @@ func main() {
 		}
 
 		var reservation Reservation
-		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := tx.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ChangedAt); err != nil {
 			tx.Rollback()
 			if err == sql.ErrNoRows {
 				return resError(c, "not_reserved", 400)
@@ -941,7 +942,7 @@ func main() {
 		for rows.Next() {
 			var reservation Reservation
 			var sheet Sheet
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ChangedAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.Price); err != nil {
 				return err
 			}
 			report := Report{
@@ -972,7 +973,7 @@ func main() {
 			var reservation Reservation
 			var sheet Sheet
 			var event Event
-			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.ID, &event.Price); err != nil {
+			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ChangedAt, &sheet.Rank, &sheet.Num, &sheet.Price, &event.ID, &event.Price); err != nil {
 				return err
 			}
 			report := Report{
