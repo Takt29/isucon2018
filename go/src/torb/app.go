@@ -240,6 +240,13 @@ func getEventMini(eventID, loginUserID int64) (*Event, error) {
 		return nil, err
 	}
 
+	event.Sheets = map[string]*Sheets{
+		"S": &Sheets{},
+		"A": &Sheets{},
+		"B": &Sheets{},
+		"C": &Sheets{},
+	}
+
 	db.QueryRow("SELECT COUNT(*) FROM sheets").Scan(&event.Total)
 	db.QueryRow("SELECT COUNT(*) FROM reservations WHERE event_id = ? AND canceled_at IS NULL", eventID).Scan(&event.Remains)
 	event.Remains = event.Total - event.Remains
