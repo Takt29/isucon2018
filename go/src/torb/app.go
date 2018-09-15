@@ -443,11 +443,11 @@ func main() {
 				return err
 			}
 			var event *Event
-			event, ok := event_bak[reservation.EventID];
+			event_check, ok := event_bak[reservation.EventID];
+			event = event_check
 			if  !ok {
-				new_event, err := getEvent(reservation.EventID, -1)
-				event_bak[reservation.EventID] = new_event
-				event = new_event
+				event_bak[reservation.EventID], err = getEvent(reservation.EventID, -1)
+				event = event_bak[reservation.EventID]
 				if err != nil {
 					return err
 				}
