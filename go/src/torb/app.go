@@ -226,11 +226,9 @@ func getEvents(all bool) ([]*Event, error) {
 		if err != nil {
 			return nil, err
 		}
-		/*
 		for k := range event.Sheets {
 			event.Sheets[k].Detail = nil
 		}
-    */
 		events[i] = event
 	}
 	return events, nil
