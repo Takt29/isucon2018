@@ -442,9 +442,6 @@ func main() {
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
 				return err
 			}
-			event, ok := event_bak[reservation.EventID];
-			//if  !ok {
-				if ok{}
 			event, err := getEvent(reservation.EventID, -1)
 			event_bak[reservation.EventID] = event
 			if err != nil {
