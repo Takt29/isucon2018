@@ -221,8 +221,8 @@ func getEvents(all bool) ([]*Event, error) {
 	
 	
 	for i, v := range events {
-		//event, err := getEventMini(v.ID, -1)
-		event, err := getEvent(v.ID, -1)
+		event, err := getEventMini(v.ID, -1)
+		//event, err := getEvent(v.ID, -1)
 		if err != nil {
 			return nil, err
 		}
