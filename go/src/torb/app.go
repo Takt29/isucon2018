@@ -445,8 +445,9 @@ func main() {
 			var event *Event
 			event, ok := event_bak[reservation.EventID];
 			if  !ok {
-				event, err := getEvent(reservation.EventID, -1)
-				event_bak[reservation.EventID] = event
+				new_event, err := getEvent(reservation.EventID, -1)
+				event_bak[reservation.EventID] = new_event
+				event = new_event
 				if err != nil {
 					return err
 				}
