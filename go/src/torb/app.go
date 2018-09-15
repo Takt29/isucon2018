@@ -435,7 +435,7 @@ func main() {
 		defer rows.Close()
 
 		var recentReservations []Reservation
-		var event_bak = make(map[int64]*Event);
+		event_bak := make(map[int64]*Event);
 		for rows.Next() {
 			var reservation Reservation
 			var sheet Sheet
@@ -443,8 +443,7 @@ func main() {
 				return err
 			}
 			event, ok := event_bak[reservation.EventID];
-			if  ok {
-			}else{
+			if  !ok {
 				event, err := getEvent(reservation.EventID, -1)
 				event_bak[reservation.EventID] = event
 				if err != nil {
