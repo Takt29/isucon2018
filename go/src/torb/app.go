@@ -268,6 +268,7 @@ func getEventMini(eventID, loginUserID int64) (*Event, error) {
 		var reserved int
 		db.QueryRow("SELECT COUNT(*) FROM sheets WHERE rank = ?", sheet.Rank).Scan(&total)
 		db.QueryRow("SELECT COUNT(*) FROM reservations WHERE event_id = ? AND rank = ? AND canceled_at IS NULL", eventID, sheet.Rank).Scan(&reserved)
+		event.Sheets[sheet.Rank].Total = total
 		event.Sheets[sheet.Rank].Remains = total - reserved
 	}
 
