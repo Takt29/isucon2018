@@ -85,6 +85,8 @@ type Administrator struct {
 	PassHash  string `json:"pass_hash,omitempty"`
 }
 
+var sheetsList []Sheet
+
 func sessUserID(c echo.Context) int64 {
 	sess, _ := session.Get("session", c)
 	var userID int64
@@ -287,17 +289,27 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		"C": &Sheets{},
 	}
 
-	rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var sheet Sheet
-		if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+	if len(sheetsList) == 0 {
+		rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
+		if err != nil {
 			return nil, err
 		}
+		defer rows.Close()
+
+		//sheetsList = make([]Sheet, 0)
+		for rows.Next() {
+			var sheet Sheet
+			if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+				return nil, err
+			}
+
+			sheetsList = append(sheetsList, sheet)
+		}
+	}
+
+	for i := range sheetsList {	
+		var sheet Sheet
+		sheet = sheetsList[i]
 		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
 		event.Total++
 		event.Sheets[sheet.Rank].Total++
@@ -411,6 +423,8 @@ func main() {
 		if err != nil {
 			return nil
 		}
+
+		sheetsList = make([]Sheet, 0)
 
 		return c.NoContent(204)
 	})
