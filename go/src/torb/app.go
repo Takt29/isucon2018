@@ -384,7 +384,7 @@ func main() {
 		}
 
 		pass_sha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(params.Password))) 
-		res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", params.LoginName, params.pass_sha256, params.Nickname)
+		res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", params.LoginName, pass_sha256, params.Nickname)
 		if err != nil {
 			tx.Rollback()
 			return resError(c, "", 0)
