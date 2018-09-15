@@ -449,11 +449,18 @@ func main() {
 				event_bak[reservation.EventID], err = getEvent(reservation.EventID, -1)
 				event = event_bak[reservation.EventID]
 				if err != nil {
+
+				return c.JSON(200, echo.Map{
+					"result": "err1",
+				})
 					return err
 				}
 			}
 
 			if err != nil {
+				return c.JSON(200, echo.Map{
+					"result": "err2",
+				})
 				return err
 			}
 			price := event.Sheets[sheet.Rank].Price
