@@ -433,6 +433,13 @@ func main() {
 			return nil
 		}
 
+		tx.Exec("update reservations set changed_at = IFNULL(canceled_at, reserved_at)")
+
+		if err != nil {
+			tx.Rollback()
+			return nil
+		}
+
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {
