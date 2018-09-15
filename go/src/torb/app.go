@@ -224,7 +224,6 @@ func getEvents(all bool) ([]*Event, error) {
 	
 	for i, v := range events {
 		event, err := getEventMini(v.ID, -1)
-		//event, err := getEvent(v.ID, -1)
 		if err != nil {
 			return nil, err
 		}
@@ -426,6 +425,14 @@ func main() {
 
 		sheetsList = make([]Sheet, 0)
 
+		tx, err := db.Begin()
+		tx.Exec("alter table reservations add column changed_at datetime(6)")
+
+		if err != nil {
+			tx.Rollback()
+			return nil
+		}
+
 		return c.NoContent(204)
 	})
 	e.POST("/api/users", func(c echo.Context) error {
@@ -484,7 +491,7 @@ func main() {
 			return resError(c, "forbidden", 403)
 		}
 
-		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5", user.ID)
+		rows, err := db.Query("SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY r.changed_at DESC LIMIT 5", user.ID)
 		if err != nil {
 			return err
 		}
@@ -666,7 +673,8 @@ func main() {
 				return err
 			}
 
-			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
+			reserved_at := time.Now().UTC().Format("2006-01-02 15:04:05.000000")
+			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at, changed_at) VALUES (?, ?, ?, ?, ?)", event.ID, sheet.ID, user.ID, reserved_at, reserved_at)
 			if err != nil {
 				tx.Rollback()
 				log.Println("re-try: rollback by", err)
@@ -745,7 +753,8 @@ func main() {
 			return resError(c, "not_permitted", 403)
 		}
 
-		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ? WHERE id = ?", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), reservation.ID); err != nil {
+		updated_time := time.Now().UTC().Format("2006-01-02 15:04:05.000000")
+		if _, err := tx.Exec("UPDATE reservations SET canceled_at = ?, changed_at = ? WHERE id = ?", updated_time, updated_time, reservation.ID); err != nil {
 			tx.Rollback()
 			return err
 		}
