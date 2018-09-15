@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -382,7 +383,8 @@ func main() {
 			return err
 		}
 
-		res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, SHA2(?, 256), ?)", params.LoginName, params.Password, params.Nickname)
+		pass_sha256 := fmt.Sprintf("%x", sha256.Sum256([]byte(params.Password))) 
+		res, err := tx.Exec("INSERT INTO users (login_name, pass_hash, nickname) VALUES (?, ?, ?)", params.LoginName, params.pass_sha256, params.Nickname)
 		if err != nil {
 			tx.Rollback()
 			return resError(c, "", 0)
@@ -505,10 +507,7 @@ func main() {
 			return err
 		}
 
-		var passHash string
-		if err := db.QueryRow("SELECT SHA2(?, 256)", params.Password).Scan(&passHash); err != nil {
-			return err
-		}
+		passHash := fmt.Sprintf("%x", sha256.Sum256([]byte(params.Password)))
 		if user.PassHash != passHash {
 			return resError(c, "authentication_failed", 401)
 		}
@@ -720,10 +719,7 @@ func main() {
 			return err
 		}
 
-		var passHash string
-		if err := db.QueryRow("SELECT SHA2(?, 256)", params.Password).Scan(&passHash); err != nil {
-			return err
-		}
+		passHash := fmt.Sprintf("%x", sha256.Sum256([]byte(params.Password)))
 		if administrator.PassHash != passHash {
 			return resError(c, "authentication_failed", 401)
 		}
