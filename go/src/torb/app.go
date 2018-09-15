@@ -435,14 +435,23 @@ func main() {
 		defer rows.Close()
 
 		var recentReservations []Reservation
+		var event_bak = make(map[int64]*Event);
 		for rows.Next() {
 			var reservation Reservation
 			var sheet Sheet
 			if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &sheet.Rank, &sheet.Num); err != nil {
 				return err
 			}
+			event, ok := event_bak[reservation.EventID];
+			if  ok {
+			}else{
+				event, err := getEvent(reservation.EventID, -1)
+				event_bak[reservation.EventID] = event
+				if err != nil {
+					return err
+				}
+			}
 
-			event, err := getEvent(reservation.EventID, -1)
 			if err != nil {
 				return err
 			}
